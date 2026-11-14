@@ -1,0 +1,41 @@
+name: Build NEON SNAKE for Windows
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Get source code
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install pygame==2.6.1 pyinstaller
+
+      - name: Build game
+        run: |
+          pyinstaller --noconfirm --clean --onefile --windowed --name NEON_SNAKE main.py
+
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer.iss
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: NEON-SNAKE-Windows-Setup
+          path: dist-installer/NEON_SNAKE_Setup.exe
